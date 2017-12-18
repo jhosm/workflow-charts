@@ -1,0 +1,4 @@
+﻿ID,Name,State.Backlog,State.Analysis Active,State.Analysis Done,State.Dev Active,State.Dev Done,State.Testing,State.Done,Team,Type,Blocked Days,Labels
+100001,Sample Item 1,20170709,20171121,20171121,20171129,20171129,20171129,,Team 3,User Story,2,
+100002,Sample Item 2,20170709,20171120,20171120,20171120,20171129,20171129,,Team 4,User Story,0,
+100004,Sample Item 4,20170709,20171116,20171116,20171128,20171128,20171128,20171128,Team 4,User Story,3,[A]

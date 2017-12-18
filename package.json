@@ -1,0 +1,59 @@
+{
+  "name": "workflow-charts",
+  "version": "1.0.0",
+  "description": "Great, actionable, visual metrics for lean workflows.",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest --coverage --watchAll",
+    "start": "cd dist; python -m SimpleHTTPServer 8000",
+    "build": "webpack"
+  },
+  "jest": {
+    "automock": false,
+    "setupFiles": ["../setupJest.js"],
+    "rootDir": "src"
+  },
+  "babel": {
+    "presets": [
+      [
+        "es2015",
+        {
+          "modules": false
+        }
+      ]
+    ],
+    "env": {
+      "test": {
+        "plugins": ["transform-es2015-modules-commonjs"]
+      }
+    }
+  },
+  "author": "João Miranda",
+  "license": "MIT",
+  "devDependencies": {
+    "awesome-typescript-loader": "^3.4.1",
+    "babel-cli": "^6.26.0",
+    "babel-preset-env": "^1.6.1",
+    "babel-preset-es2015": "^6.24.1",
+    "expect": "latest",
+    "jest": "^21.2.1",
+    "jest-fetch-mock": "^1.3.3",
+    "source-map-loader": "^0.2.3",
+    "typescript": "^2.6.2",
+    "webpack": "^3.9.1"
+  },
+  "dependencies": {
+    "@types/immutable": "^3.8.7",
+    "@types/lodash": "^4.14.91",
+    "@types/moment": "^2.13.0",
+    "@types/react": "^16.0.31",
+    "@types/react-dom": "^16.0.3",
+    "eslint": "^4.13.1",
+    "highcharts": "^6.0.3",
+    "immutable": "^3.8.2",
+    "lodash": "^4.17.4",
+    "moment": "^2.19.3",
+    "papaparse": "^4.3.6",
+    "tslint": "^5.8.0"
+  }
+}
