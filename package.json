@@ -4,27 +4,49 @@
   "description": "Great, actionable, visual metrics for lean workflows.",
   "main": "index.js",
   "scripts": {
-    "test": "jest --coverage --watchAll",
+    "test": "jest",
     "start": "cd dist; python -m SimpleHTTPServer 8000",
     "build": "webpack"
   },
   "jest": {
     "automock": false,
-    "setupFiles": ["../setupJest.js"],
-    "rootDir": "src"
+    "setupFiles": [
+      "../setupJest.js"
+    ],
+    "rootDir": "src",
+    "collectCoverage": true,
+    "coverageReporters": [
+      "json",
+      "lcov",
+      "text",
+      "text-summary"
+    ],
+    "coverageThreshold": {
+      "global": {
+        "branches": 80,
+        "functions": 80,
+        "lines": 80,
+        "statements": -10
+      }
+    }
+  },
+  "eslintConfig": {
+    "parser": "babel-eslint",
+    "extends": [
+      "plugin:prettier/recommended"
+    ]
   },
   "babel": {
     "presets": [
-      [
-        "es2015",
-        {
-          "modules": false
-        }
-      ]
+      "es2015"
     ],
+    "sourceMaps": true,
+    "retainLines": true,
     "env": {
       "test": {
-        "plugins": ["transform-es2015-modules-commonjs"]
+        "plugins": [
+          "transform-es2015-modules-commonjs"
+        ]
       }
     }
   },
@@ -33,17 +55,23 @@
   "devDependencies": {
     "awesome-typescript-loader": "^3.4.1",
     "babel-cli": "^6.26.0",
+    "babel-eslint": "^8.0.3",
     "babel-preset-env": "^1.6.1",
     "babel-preset-es2015": "^6.24.1",
+    "babel-register": "^6.26.0",
+    "eslint-config-prettier": "^2.9.0",
+    "eslint-plugin-prettier": "^2.4.0",
     "expect": "latest",
     "jest": "^21.2.1",
     "jest-fetch-mock": "^1.3.3",
+    "prettier": "^1.9.2",
     "source-map-loader": "^0.2.3",
     "typescript": "^2.6.2",
     "webpack": "^3.9.1"
   },
   "dependencies": {
-    "@types/immutable": "^3.8.7",
+    "@types/es6-promise": "^0.0.33",
+    "@types/highcharts": "^5.0.12",
     "@types/lodash": "^4.14.91",
     "@types/moment": "^2.13.0",
     "@types/react": "^16.0.31",

@@ -9,10 +9,16 @@
  - returns: sample quantile.
  */
 function qDef(data, k, probability) {
-    if(data.length == 0) { return undefined; }
-    if (k < 1) { return data[0]; }
-    if (k >= data.length) { return data[data.length - 1]; }
-    return ((1.0 - probability) * data[k - 1]) + (probability * data[k]);
+  if (data.length == 0) {
+    return undefined;
+  }
+  if (k < 1) {
+    return data[0];
+  }
+  if (k >= data.length) {
+    return data[data.length - 1];
+  }
+  return (1.0 - probability) * data[k - 1] + probability * data[k];
 }
 
 /**
@@ -23,30 +29,14 @@ function qDef(data, k, probability) {
  - returns: sample quantile.
  */
 function percentile(data, probability) {
-    if (probability < 0 || probability > 1) { return undefined; }
-    let count = data.length;
-    let m = 1.0 - probability;
-    let k = parseInt((probability * count) + m);
-    probability = (probability * count) + m - parseFloat(k);
-    return qDef(data, k, probability);
+  if (probability < 0 || probability > 1) {
+    return undefined;
+  }
+  let count = data.length;
+  let m = 1.0 - probability;
+  let k = parseInt(probability * count + m);
+  probability = probability * count + m - parseFloat(k);
+  return qDef(data, k, probability);
 }
 
-
-// Returns the percentile of the given value in a sorted numeric array.
-function percentRank(arr, v) {
-    if (typeof v !== 'number') throw new TypeError('v must be a number');
-    let i = 0, l = arr.length;
-    for (; i < l; i++) {
-        if (v <= arr[i]) {
-            while (i < l && v === arr[i]) i++;
-            if (i === 0) return 0;
-           /* if (v !== arr[i-1]) {
-                i += (v - arr[i-1]) / (arr[i] - arr[i-1]);
-            }*/
-            return i / l;
-        }
-    }
-    return 1;
-}
-
-export { percentile, percentRank };
+export { percentile };

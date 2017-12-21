@@ -37,10 +37,12 @@ export default class CycleTimeScatterPlotter {
   }
 
   plot() {
-    Highcharts.chart("container", {
+    Highcharts.chart("cycleTimeScatterPlotContainer", {
       chart: {
         type: "scatter",
-        zoomType: "xy"
+        zoomType: "x",
+        panning: true,
+        panKey: "shift"
       },
       title: {
         text: "Work Items Cycle Time"
@@ -92,53 +94,6 @@ export default class CycleTimeScatterPlotter {
             hover: {
               marker: {
                 enabled: false
-              }
-            }
-          }
-        },
-        series: {
-          point: {
-            events: {
-              mouseOver: function(e) {
-                var chart = this.series.chart;
-                if (!chart.lbl) {
-                  chart.lbl = chart.renderer
-                    .label("")
-                    .attr({
-                      padding: 10,
-                      r: 10,
-                      fill: Highcharts.getOptions().colors[1]
-                    })
-                    .css({
-                      color: "#FFFFFF"
-                    })
-                    .add();
-                }
-                chart.lbl.show().attr({
-                  text: "x: " + this.x + ", y: " + this.y
-                });
-
-                chart.xAxis[0].removePlotLine("plot-line-x");
-                chart.yAxis[0].removePlotLine("plot-line-y");
-                chart.xAxis[0].addPlotLine({
-                  value: this.x,
-                  color: "blue",
-                  width: 2,
-                  id: "plot-line-x"
-                });
-                chart.yAxis[0].addPlotLine({
-                  value: this.y,
-                  color: "red",
-                  width: 2,
-                  id: "plot-line-y"
-                });
-              }
-            }
-          },
-          events: {
-            mouseOut: function() {
-              if (this.chart.lbl) {
-                this.chart.lbl.hide();
               }
             }
           }

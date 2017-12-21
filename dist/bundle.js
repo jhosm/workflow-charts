@@ -16308,28 +16308,32 @@ return zhTw;
 
 
 class WorkItemsCollection {
-    constructor(workItems) {
-        this._workItems = Object(__WEBPACK_IMPORTED_MODULE_0_immutable__["List"])(workItems);
-    }
+  constructor(workItems) {
+    this._workItems = Object(__WEBPACK_IMPORTED_MODULE_0_immutable__["List"])(workItems);
+  }
 
-    get workItems() {
-        return this._workItems;
-    }
+  get workItems() {
+    return this._workItems;
+  }
 
-    filter(predicate) {
-        let filteredWorkItems = this.workItems.filter(predicate);
-        return new WorkItemsCollection(filteredWorkItems);
-    }
+  filter(predicate) {
+    let filteredWorkItems = this.workItems.filter(predicate);
+    return new WorkItemsCollection(filteredWorkItems);
+  }
 
-    percentile(p) {
-        let workItemsCycleTimes = Object(__WEBPACK_IMPORTED_MODULE_0_immutable__["Seq"])(this.workItems)
-            .map(wi => wi.cycleTime)
-            .sort((a , b) => { return a - b; } );
-        let result = Math.ceil(Object(__WEBPACK_IMPORTED_MODULE_1__percentile__["a" /* percentile */])(workItemsCycleTimes.toArray(), p/100)) + 1;
-        return result;
-    }
+  percentile(p) {
+    let workItemsCycleTimes = Object(__WEBPACK_IMPORTED_MODULE_0_immutable__["Seq"])(this.workItems)
+      .map(wi => wi.cycleTime)
+      .sort((a, b) => {
+        return a - b;
+      });
+    let result =
+      Math.ceil(Object(__WEBPACK_IMPORTED_MODULE_1__percentile__["a" /* percentile */])(workItemsCycleTimes.toArray(), p / 100)) + 1;
+    return result;
+  }
 }
 /* harmony export (immutable) */ __webpack_exports__["a"] = WorkItemsCollection;
+
 
 
 /***/ }),
@@ -16346,14 +16350,83 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 
 
 async function render() {
+  let loader = new __WEBPACK_IMPORTED_MODULE_0__workItemsLoader__["a" /* default */]();
+  let workItems = await __WEBPACK_IMPORTED_MODULE_0__workItemsLoader__["a" /* default */].load();
+  let cycleTimePlotter = new __WEBPACK_IMPORTED_MODULE_1__cycleTimeScatterPlotter__["a" /* default */](
+    loader.buildWorkItems(workItems)
+  );
+  cycleTimePlotter.plot();
 
-    let loader = new __WEBPACK_IMPORTED_MODULE_0__workItemsLoader__["a" /* default */]();
-    let workItems = await __WEBPACK_IMPORTED_MODULE_0__workItemsLoader__["a" /* default */].load();
-    let x = new __WEBPACK_IMPORTED_MODULE_1__cycleTimeScatterPlotter__["a" /* default */](loader.buildWorkItems(workItems));
-    x.plot();
+  Highcharts.chart("AgingWorkInProgressContainer", {
+    chart: {
+      type: "scatter",
+      zoomType: "x"
+    },
+    title: {
+      text: "Work Items Cycle Time"
+    },
+    subtitle: {
+      text: "Source: Sample Data"
+    },
+    xAxis: {
+      title: {
+        enabled: true,
+        text: "Done Date"
+      },
+      tickInterval: 24 * 3600 * 1000,
+      startOnTick: true,
+      endOnTick: true,
+      showLastLabel: true,
+      type: "datetime"
+    },
+    yAxis: {
+      title: {
+        text: "CycleTime"
+      },
+      plotLines: this._plotLines
+    },
+    legend: {
+      layout: "vertical",
+      align: "left",
+      verticalAlign: "top",
+      x: 100,
+      y: 70,
+      floating: true,
+      backgroundColor:
+        (Highcharts.theme && Highcharts.theme.legendBackgroundColor) ||
+        "#FFFFFF",
+      borderWidth: 1
+    },
+    plotOptions: {
+      scatter: {
+        marker: {
+          radius: 5,
+          states: {
+            hover: {
+              enabled: true,
+              lineColor: "rgb(100,100,100)"
+            }
+          }
+        },
+        states: {
+          hover: {
+            marker: {
+              enabled: false
+            }
+          }
+        }
+      }
+    },
+    series: [
+      {
+        name: "Work Item",
+        color: "rgba(119, 152, 191, .5)",
+        data: this._data
+      }
+    ]
+  });
 }
 render();
-
 
 
 /***/ }),
@@ -16377,45 +16450,40 @@ render();
 
 
 
-const STATE_PREFIX = 'State.';
+const STATE_PREFIX = "State.";
 
 class WorkItemsLoader {
+  getStateFields(fields) {
+    return __WEBPACK_IMPORTED_MODULE_2_lodash___default.a.filter(fields, field => {
+      if (__WEBPACK_IMPORTED_MODULE_2_lodash___default.a.startsWith(field, STATE_PREFIX)) return field;
+    });
+  }
 
-    getStateFields(fields) {
-        return __WEBPACK_IMPORTED_MODULE_2_lodash___default.a.filter(fields,
-            (field) => {
-                if (__WEBPACK_IMPORTED_MODULE_2_lodash___default.a.startsWith(field, STATE_PREFIX)) return field;
-            }
-        );
-    }
+  buildWorkItems(rawData) {
+    let fields = rawData.meta.fields;
+    let stateFields = this.getStateFields(fields);
+    let initialState = stateFields[1];
+    let finalState = stateFields[stateFields.length - 1];
+    let result = __WEBPACK_IMPORTED_MODULE_2_lodash___default.a.map(rawData.data, dataItem => {
+      let wi = new __WEBPACK_IMPORTED_MODULE_3__workItem__["a" /* default */](
+        dataItem[fields[0]],
+        dataItem[fields[1]],
+        __WEBPACK_IMPORTED_MODULE_1_moment___default.a.utc(dataItem[initialState], "YYYYMMDD"),
+        __WEBPACK_IMPORTED_MODULE_1_moment___default.a.utc(dataItem[finalState], "YYYYMMDD")
+      );
+      return wi;
+    });
+    return new __WEBPACK_IMPORTED_MODULE_4__workItemsCollection__["a" /* default */](result);
+  }
 
-    buildWorkItems(rawData) {
-        let fields = rawData.meta.fields;
-        let stateFields = this.getStateFields(fields);
-        let initialState = stateFields[1];
-        let finalState = stateFields[stateFields.length - 1];
-        let result = __WEBPACK_IMPORTED_MODULE_2_lodash___default.a.map(rawData.data, (dataItem) => {
-            let wi = new __WEBPACK_IMPORTED_MODULE_3__workItem__["a" /* default */](
-                dataItem[fields[0]],
-                dataItem[fields[1]],
-                __WEBPACK_IMPORTED_MODULE_1_moment___default.a.utc(dataItem[initialState], 'YYYYMMDD'),
-                __WEBPACK_IMPORTED_MODULE_1_moment___default.a.utc(dataItem[finalState], 'YYYYMMDD')
-            );
-            return wi;
-        });
-        return new __WEBPACK_IMPORTED_MODULE_4__workItemsCollection__["a" /* default */](result);
-    }
-
-    static async load() {
-        let response = await fetch('/sampleData.htm');
-        let data = await response.text();
-        let results = __WEBPACK_IMPORTED_MODULE_0_papaparse___default.a.parse(data, {
-            header: true
-        });
-        return results;
-    }
-
-
+  static async load() {
+    let response = await fetch("/sampleData.htm");
+    let data = await response.text();
+    let results = __WEBPACK_IMPORTED_MODULE_0_papaparse___default.a.parse(data, {
+      header: true
+    });
+    return results;
+  }
 }
 /* harmony export (immutable) */ __webpack_exports__["a"] = WorkItemsLoader;
 
@@ -35410,28 +35478,28 @@ module.exports = g;
 
 
 class WorkItem {
-    constructor(id, name, initialStateDate, finalStateDate) {
-        this._id = id;
-        this._name = name;
+  constructor(id, name, initialStateDate, finalStateDate) {
+    this._id = id;
+    this._name = name;
 
-        let cycleTime = finalStateDate.diff(initialStateDate, 'days');
-        if(initialStateDate && finalStateDate && finalStateDate.isValid()) {
-            if(cycleTime > 0) {
-                this._cycleTime = cycleTime;
-                this._doneAt = finalStateDate;
-            }
-        }
+    let cycleTime = finalStateDate.diff(initialStateDate, "days");
+    if (initialStateDate && finalStateDate && finalStateDate.isValid()) {
+      if (cycleTime > 0) {
+        this._cycleTime = cycleTime;
+        this._doneAt = finalStateDate;
+      }
     }
+  }
+  get doneAt() {
+    return this._doneAt;
+  }
 
-    get doneAt() {
-        return this._doneAt;
-    }
-
-    get cycleTime() {
-        return this._cycleTime;
-    }
+  get cycleTime() {
+    return this._cycleTime;
+  }
 }
 /* harmony export (immutable) */ __webpack_exports__["a"] = WorkItem;
+
 
 
 /***/ }),
@@ -40422,7 +40490,6 @@ class WorkItem {
 
 "use strict";
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return percentile; });
-/* unused harmony export percentRank */
 // Based on https://github.com/evgenyneu/SigmaSwiftStatistics/wiki/Percentile-1-method
 
 /**
@@ -40434,10 +40501,16 @@ class WorkItem {
  - returns: sample quantile.
  */
 function qDef(data, k, probability) {
-    if(data.length == 0) { return undefined; }
-    if (k < 1) { return data[0]; }
-    if (k >= data.length) { return data[data.length - 1]; }
-    return ((1.0 - probability) * data[k - 1]) + (probability * data[k]);
+  if (data.length == 0) {
+    return undefined;
+  }
+  if (k < 1) {
+    return data[0];
+  }
+  if (k >= data.length) {
+    return data[data.length - 1];
+  }
+  return (1.0 - probability) * data[k - 1] + probability * data[k];
 }
 
 /**
@@ -40448,31 +40521,16 @@ function qDef(data, k, probability) {
  - returns: sample quantile.
  */
 function percentile(data, probability) {
-    if (probability < 0 || probability > 1) { return undefined; }
-    let count = data.length;
-    let m = 1.0 - probability;
-    let k = parseInt((probability * count) + m);
-    probability = (probability * count) + m - parseFloat(k);
-    return qDef(data, k, probability);
+  if (probability < 0 || probability > 1) {
+    return undefined;
+  }
+  let count = data.length;
+  let m = 1.0 - probability;
+  let k = parseInt(probability * count + m);
+  probability = probability * count + m - parseFloat(k);
+  return qDef(data, k, probability);
 }
 
-
-// Returns the percentile of the given value in a sorted numeric array.
-function percentRank(arr, v) {
-    if (typeof v !== 'number') throw new TypeError('v must be a number');
-    let i = 0, l = arr.length;
-    for (; i < l; i++) {
-        if (v <= arr[i]) {
-            while (i < l && v === arr[i]) i++;
-            if (i === 0) return 0;
-           /* if (v !== arr[i-1]) {
-                i += (v - arr[i-1]) / (arr[i] - arr[i-1]);
-            }*/
-            return i / l;
-        }
-    }
-    return 1;
-}
 
 
 
@@ -40493,156 +40551,111 @@ function percentRank(arr, v) {
 
 
 class CycleTimeScatterPlotter {
+  constructor(workItems) {
+    let doneWorkItems = workItems.filter(workItem => {
+      return workItem.doneAt != undefined;
+    });
+    this._data = doneWorkItems.workItems
+      .map(doneWorkItem => {
+        return [doneWorkItem.doneAt.valueOf(), doneWorkItem.cycleTime];
+      })
+      .toArray();
 
-    constructor(workItems) {
-        let doneWorkItems = workItems.filter((workItem) => { return workItem.doneAt != undefined });
-        this._data = doneWorkItems.workItems.map((doneWorkItem) => {
-            return [doneWorkItem.doneAt.valueOf(), doneWorkItem.cycleTime];
-        }).toArray();
+    this._plotLines = [];
+    [50, 70, 85, 95].forEach(p => {
+      let pValue = doneWorkItems.percentile(p);
+      this._plotLines.push({
+        value: pValue,
+        color: "black",
+        dashStyle: "Dash",
+        width: 1,
+        id: "plot-line-x-" + p,
+        label: {
+          text: p + "% (" + pValue + "d)",
+          align: "right"
+        }
+      });
+    });
+  }
 
-        this._plotLines = [];
-        [50, 70, 85, 95].forEach((p) => {
-            let pValue = doneWorkItems.percentile(p);
-            this._plotLines.push({
-                value: pValue,
-                color: 'black',
-                dashStyle: 'Dash',
-                width: 1,
-                id: 'plot-line-x-' + p,
-                label: {
-                    text: p + '% (' + pValue + 'd)',
-                    align: 'right'
-                }
-            });
-        });
+  get plotLines() {
+    return this._plotLines;
+  }
 
-    }
-
-    get plotLines() {
-        return this._plotLines;
-    }
-
-    plot() {
-        __WEBPACK_IMPORTED_MODULE_0_highcharts___default.a.chart('container', {
-            chart: {
-                type: 'scatter',
-                zoomType: 'xy'
-            },
-            title: {
-                text: 'Work Items Cycle Time'
-            },
-            subtitle: {
-                text: 'Source: Sample Data'
-            },
-            xAxis: {
-                title: {
-                    enabled: true,
-                    text: 'Done Date'
-                },
-                tickInterval: (24 * 3600 * 1000),
-                startOnTick: true,
-                endOnTick: true,
-                showLastLabel: true,
-                type: 'datetime'
-            },
-            yAxis: {
-                title: {
-                    text: 'CycleTime'
-                },
-                plotLines: this._plotLines
-            },
-            legend: {
-                layout: 'vertical',
-                align: 'left',
-                verticalAlign: 'top',
-                x: 100,
-                y: 70,
-                floating: true,
-                backgroundColor: (__WEBPACK_IMPORTED_MODULE_0_highcharts___default.a.theme && __WEBPACK_IMPORTED_MODULE_0_highcharts___default.a.theme.legendBackgroundColor) || '#FFFFFF',
-                borderWidth: 1
-            },
-            plotOptions: {
-                scatter: {
-                    marker: {
-                        radius: 5,
-                        states: {
-                            hover: {
-                                enabled: true,
-                                lineColor: 'rgb(100,100,100)'
-                            }
-                        }
-                    },
-                    states: {
-                        hover: {
-                            marker: {
-                                enabled: false
-                            }
-                        }
-                    }
-                },
-                series: {
-                    point: {
-                        events: {
-                            mouseOver: function (e) {
-                                var chart = this.series.chart;
-                                if (!chart.lbl) {
-                                    chart.lbl = chart.renderer.label('')
-                                        .attr({
-                                            padding: 10,
-                                            r: 10,
-                                            fill: __WEBPACK_IMPORTED_MODULE_0_highcharts___default.a.getOptions().colors[1]
-                                        })
-                                        .css({
-                                            color: '#FFFFFF'
-                                        })
-                                        .add();
-                                }
-                                chart.lbl
-                                    .show()
-                                    .attr({
-                                        text: 'x: ' + this.x + ', y: ' + this.y
-                                    });
-
-                                chart.xAxis[0].removePlotLine('plot-line-x');
-                                chart.yAxis[0].removePlotLine('plot-line-y');
-                                chart.xAxis[0].addPlotLine({
-                                    value: this.x,
-                                    color: 'blue',
-                                    width: 2,
-                                    id: 'plot-line-x'
-                                });
-                                chart.yAxis[0].addPlotLine({
-                                    value: this.y,
-                                    color: 'red',
-                                    width: 2,
-                                    id: 'plot-line-y'
-                                });
-                            }
-
-
-                        }
-                    },
-                    events: {
-                        mouseOut: function () {
-                            if (this.chart.lbl) {
-                                this.chart.lbl.hide();
-                            }
-                        }
-                    }
-                }
-            },
-            series: [
-            {
-                name: 'Work Item',
-                color: 'rgba(119, 152, 191, .5)',
-                data: this._data
-            }]
-        });
-    }
+  plot() {
+    __WEBPACK_IMPORTED_MODULE_0_highcharts___default.a.chart("cycleTimeScatterPlotContainer", {
+      chart: {
+        type: "scatter",
+        zoomType: "x",
+        panning: true,
+        panKey: "shift"
+      },
+      title: {
+        text: "Work Items Cycle Time"
+      },
+      subtitle: {
+        text: "Source: Sample Data"
+      },
+      xAxis: {
+        title: {
+          enabled: true,
+          text: "Done Date"
+        },
+        tickInterval: 24 * 3600 * 1000,
+        startOnTick: true,
+        endOnTick: true,
+        showLastLabel: true,
+        type: "datetime"
+      },
+      yAxis: {
+        title: {
+          text: "CycleTime"
+        },
+        plotLines: this._plotLines
+      },
+      legend: {
+        layout: "vertical",
+        align: "left",
+        verticalAlign: "top",
+        x: 100,
+        y: 70,
+        floating: true,
+        backgroundColor:
+          (__WEBPACK_IMPORTED_MODULE_0_highcharts___default.a.theme && __WEBPACK_IMPORTED_MODULE_0_highcharts___default.a.theme.legendBackgroundColor) ||
+          "#FFFFFF",
+        borderWidth: 1
+      },
+      plotOptions: {
+        scatter: {
+          marker: {
+            radius: 5,
+            states: {
+              hover: {
+                enabled: true,
+                lineColor: "rgb(100,100,100)"
+              }
+            }
+          },
+          states: {
+            hover: {
+              marker: {
+                enabled: false
+              }
+            }
+          }
+        }
+      },
+      series: [
+        {
+          name: "Work Item",
+          color: "rgba(119, 152, 191, .5)",
+          data: this._data
+        }
+      ]
+    });
+  }
 }
 /* harmony export (immutable) */ __webpack_exports__["a"] = CycleTimeScatterPlotter;
-;
-
 
 
 

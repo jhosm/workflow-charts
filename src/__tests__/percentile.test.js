@@ -1,4 +1,4 @@
-"use strickt";
+"use strict";
 
 import { percentile } from "../percentile";
 import _ from "lodash";
@@ -421,4 +421,13 @@ it("should correctly calculate the percentile", () => {
       percentilePair[1]
     );
   });
+});
+
+it("should not calculate the percentile for values smaller than 0 or greater than 1", () => {
+  expect(percentile(universe, -1)).toBeUndefined();
+  expect(percentile(universe, 2)).toBeUndefined();
+});
+
+it("should not calculate the percentile for an empty data universe", () => {
+  expect(percentile([], 0.5)).toBeUndefined();
 });
