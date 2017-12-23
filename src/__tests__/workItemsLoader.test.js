@@ -23,25 +23,14 @@ describe("WorkItemsLoader", () => {
     });
 
     it("should set id and name", () => {
-      expect(workItems.size).toBe(4);
+      expect(workItems.size).toBe(3);
       expect(workItems.get(2)).toEqual(
+        // just to make sure that we're creating the correct work items... at least one of them!
         expect.objectContaining({
-          _id: "100004",
-          _name: "Sample Item 4"
+          id: "100004",
+          name: "Sample Item 4"
         })
       );
-    });
-
-    it("should calculate the cycle time when a work item is done", () => {
-      expect(workItems.get(2).cycleTime).toBe(12);
-    });
-
-    it("should set the done date when a work item is done", () => {
-      expect(workItems.get(2).doneAt.isSame("2017-11-28")).toBeTruthy();
-    });
-
-    it("should not calculate the cycle time when a work item is not done", () => {
-      expect(workItems.get(0).cycleTime).toBeUndefined();
     });
   });
 

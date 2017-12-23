@@ -1,6 +1,7 @@
 "use strict";
 
 import _ from "lodash";
+import { List } from "immutable";
 import moment from "moment";
 import CycleTimeScatterPlotter from "../cycleTimeScatterPlotter";
 import WorkItemsCollection from "../workItemsCollection";
@@ -11,10 +12,10 @@ it("should correctly calculate the percentile", () => {
   const baseDate = moment("20170101", "YYYYMMDD");
   _.range(100).forEach(i => {
     const wi = new WorkItem(
-      i,
+      i + "",
       "wi_" + i,
-      baseDate,
-      baseDate.clone().add(i, "days")
+      List([baseDate, baseDate.clone().add(i, "days")]),
+      ["ToDo", "Done"]
     );
     workItemsSample.push(wi);
   });

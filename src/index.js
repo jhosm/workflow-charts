@@ -1,5 +1,6 @@
 "use strict";
 
+import Highcharts from "highcharts";
 import FlowDataLoader from "./workItemsLoader";
 import CycleTimeScatterPlotter from "./cycleTimeScatterPlotter";
 
@@ -17,7 +18,7 @@ async function render() {
       zoomType: "x"
     },
     title: {
-      text: "Work Items Cycle Time"
+      text: "Aging Work In Progress"
     },
     subtitle: {
       text: "Source: Sample Data"
@@ -27,17 +28,13 @@ async function render() {
         enabled: true,
         text: "Done Date"
       },
-      tickInterval: 24 * 3600 * 1000,
-      startOnTick: true,
-      endOnTick: true,
       showLastLabel: true,
-      type: "datetime"
+      type: "category"
     },
     yAxis: {
       title: {
         text: "CycleTime"
-      },
-      plotLines: this._plotLines
+      }
     },
     legend: {
       layout: "vertical",
@@ -75,7 +72,34 @@ async function render() {
       {
         name: "Work Item",
         color: "rgba(119, 152, 191, .5)",
-        data: this._data
+        data: [
+          ["x", 51.6],
+          ["x", 51.6],
+          ["x", 59.0],
+          ["y", 49.2],
+          ["x", 61.6],
+          ["x", 92.6],
+          ["x", 59.0],
+          ["x", 61.6],
+          ["x", 1.6],
+          ["x", 59.0],
+          ["x", 71.6],
+          ["x", 11.6],
+          ["x", 59.0],
+          ["x", 81.6],
+          ["x", 91.6],
+          ["x", 59.0],
+          ["x", 31.6],
+          ["x", 41.6],
+          ["x", 59.0]
+        ]
+      },
+      {
+        name: "Work Item 2",
+        color: "rgba(119, 152, 191, .5)",
+        pointPadding: 0.4,
+        pointPlacement: 0.2,
+        data: [["x", 51.6], ["x", 51.6], ["x", 59.0]]
       }
     ]
   });
