@@ -13,8 +13,13 @@ export default class WorkItemsCollection {
   }
 
   filter(predicate) {
-    let filteredWorkItems = this.workItems.filter(predicate);
+    const filteredWorkItems = this.workItems.filter(predicate);
     return new WorkItemsCollection(filteredWorkItems);
+  }
+
+  sortBy(comparer) {
+    const sortedWorkItems = this.workItems.sortBy(comparer);
+    return new WorkItemsCollection(sortedWorkItems);
   }
 
   percentile(p) {

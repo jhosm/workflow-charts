@@ -3,18 +3,7 @@
 import { List } from "immutable";
 import moment from "moment";
 import WorkItem from "../workItem";
-
-function buildWorkItem({
-  id = "1",
-  name = "name1",
-  statesDates = List([
-    moment("2017-01-01", "YYYYMMDD"),
-    moment("2017-01-03", "YYYYMMDD")
-  ]),
-  stateNames = ["ToDo", "Done"]
-} = {}) {
-  return new WorkItem(id, name, statesDates, stateNames);
-}
+import buildWorkItem from "./builders/workItemBuilder";
 
 it("should get the id and the name", () => {
   const wi = buildWorkItem();

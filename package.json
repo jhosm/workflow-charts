@@ -76,6 +76,7 @@
     "@types/moment": "^2.13.0",
     "@types/react": "^16.0.31",
     "@types/react-dom": "^16.0.3",
+    "amcharts3": "amcharts/amcharts3",
     "eslint": "^4.13.1",
     "highcharts": "^6.0.3",
     "immutable": "^3.8.2",

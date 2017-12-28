@@ -1,9 +1,11 @@
 "use strict";
 
-import Highcharts from "highcharts";
+//import Highcharts from "highcharts";
 import FlowDataLoader from "./workItemsLoader";
 import CycleTimeScatterPlotter from "./cycleTimeScatterPlotter";
-
+/*import AmCharts from "amcharts3";
+import AmXYChart from "amcharts3/amcharts/xy";
+*/
 async function render() {
   let loader = new FlowDataLoader();
   let workItems = await FlowDataLoader.load();
@@ -12,7 +14,7 @@ async function render() {
   );
   cycleTimePlotter.plot();
 
-  Highcharts.chart("AgingWorkInProgressContainer", {
+  /* Highcharts.chart("AgingWorkInProgressContainer", {
     chart: {
       type: "scatter",
       zoomType: "x"
@@ -102,6 +104,6 @@ async function render() {
         data: [["x", 51.6], ["x", 51.6], ["x", 59.0]]
       }
     ]
-  });
+  });*/
 }
 render();

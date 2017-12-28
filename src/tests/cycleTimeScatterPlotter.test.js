@@ -23,10 +23,11 @@ it("should correctly calculate the percentile", () => {
   const plotter = new CycleTimeScatterPlotter(
     new WorkItemsCollection(workItemsSample)
   );
-  expect(plotter.plotLines[0]).toEqual(
+  expect(plotter.guides()[0]).toEqual(
     expect.objectContaining({
       value: 51,
-      id: "plot-line-x-50"
+      id: "guides-x-50",
+      label: "50% (51d)"
     })
   );
 });
