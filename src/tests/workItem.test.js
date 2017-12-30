@@ -1,9 +1,10 @@
 "use script";
 
+import _ from "lodash";
 import { List } from "immutable";
 import moment from "moment";
 import WorkItem from "../workItem";
-import buildWorkItem from "./builders/workItemBuilder";
+import { buildWorkItem } from "./builders/workItemBuilder";
 
 it("should get the id and the name", () => {
   const wi = buildWorkItem();
@@ -159,4 +160,22 @@ it("should be verified that the size of the state transitions is equal to the si
   expect(() => {
     new WorkItem("anId", "aName", [moment()], ["TODO"]);
   }).not.toThrow();
+});
+
+it("should correctly calculate the percentile", () => {
+  const workItemsSample = [];
+  const baseDate = moment("20170101", "YYYYMMDD");
+  _.range(100).forEach(i => {
+    const doneDate = moment("20170101", "YYYYMMDD");
+    doneDate.add(i, "days");
+    const wi = new WorkItem(i + "", "wi_" + i, List([baseDate, doneDate]), [
+      "ToDo",
+      "Done"
+    ]);
+    workItemsSample.push(wi);
+  });
+
+  for (let i = 1; i < workItemsSample.length; i++) {
+    expect(WorkItem.percentile(workItemsSample, i)).toBe(i);
+  }
 });

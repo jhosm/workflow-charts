@@ -1,12 +1,25 @@
 "use strict";
 
 import _ from "lodash";
-import { List } from "immutable";
+import { List, Seq } from "immutable";
 import moment from "moment/moment";
+import { percentile } from "./percentile";
 
 let statesList;
 
 export default class WorkItem {
+  static percentile(workItems, p) {
+    const workItemsCycleTimes = Seq(workItems)
+      .map(wi => wi.cycleTime)
+      .sort((a, b) => {
+        return a - b;
+      });
+    const result = Math.ceil(
+      percentile(workItemsCycleTimes.toArray(), p / 100)
+    );
+    return result;
+  }
+
   constructor(id, name, statesDatesTransitions, statesNames) {
     if (!id) throw new Error("id must not be empty");
     if (!name) throw new Error("name must not be empty");
@@ -55,7 +68,7 @@ export default class WorkItem {
 
     if (finalStateDate && finalStateDate.isValid()) {
       const cycleTime = finalStateDate.diff(initialStateDate, "days");
-      if (cycleTime > 0) {
+      if (cycleTime >= 0) {
         this.cycleTime = cycleTime;
         this.doneAt = finalStateDate;
       }

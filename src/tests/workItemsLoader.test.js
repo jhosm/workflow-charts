@@ -19,7 +19,7 @@ describe("WorkItemsLoader", () => {
   describe("building work items", () => {
     let workItems;
     beforeAll(() => {
-      workItems = loader.buildWorkItems(parsedSampleData).workItems;
+      workItems = loader.buildWorkItems(parsedSampleData);
     });
 
     it("should set id and name", () => {

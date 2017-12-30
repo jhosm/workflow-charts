@@ -5,7 +5,6 @@ import moment from "moment";
 import _ from "lodash";
 import { List } from "immutable";
 import WorkItem from "./workItem";
-import WorkItemsCollection from "./workItemsCollection";
 
 const STATE_PREFIX = "State.";
 
@@ -42,7 +41,7 @@ export default class WorkItemsLoader {
         );
         return wi;
       });
-    return new WorkItemsCollection(result);
+    return List(result);
   }
 
   static async load() {

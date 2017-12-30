@@ -3,47 +3,57 @@
 import _ from "lodash";
 import Highcharts from "highcharts";
 import { List, Map } from "immutable";
-import WorkItemsCollection from "./workItemsCollection";
+import WorkItem from "./workItem";
 import moment from "moment";
 
 export default class CycleTimeScatterPlotter {
   constructor(workItems) {
-    this._doneWorkItems = workItems.filter(workItem => {
+    this._doneWorkItems = List(workItems).filter(workItem => {
       return workItem.doneAt != undefined;
     });
-    this._data = this._doneWorkItems.workItems.reduce((acc, doneWorkItem) => {
-      const key = doneWorkItem.doneAt + "-" + doneWorkItem.cycleTime;
-      if (!acc[key]) {
-        acc[key] = {
-          date: doneWorkItem.doneAt.toDate(),
-          days: doneWorkItem.cycleTime,
-          size: "",
-          workItems: List([doneWorkItem])
-        };
-      } else {
-        if (acc[key]["size"] === "") {
-          acc[key]["size"] = 2;
-        } else if (acc[key]["size"] < 9) {
-          acc[key]["size"] = acc[key]["size"] + 1;
+    const dataKeyedByDateAndCycleTime = this._doneWorkItems.reduce(
+      (acc, doneWorkItem) => {
+        const key = doneWorkItem.doneAt + "-" + doneWorkItem.cycleTime;
+        if (!acc.has(key)) {
+          return acc.set(key, {
+            date: doneWorkItem.doneAt.toDate(),
+            days: doneWorkItem.cycleTime,
+            size: "",
+            workItems: List([doneWorkItem])
+          });
         } else {
-          acc[key]["size"] = "+";
+          return acc.update(key, value => {
+            if (value["size"] === "") {
+              value["size"] = 2;
+            } else if (value["size"] < 9) {
+              value["size"] = value["size"] + 1;
+            } else {
+              value["size"] = "+";
+            }
+            value["workItems"] = value["workItems"].push(doneWorkItem);
+            return value;
+          });
         }
-        acc[key]["workItems"].push(doneWorkItem);
-      }
-      return acc;
-    }, {});
-    this._data = _.values(this._data);
-    this._data = _.sortBy(this._data, datum => datum.date);
+      },
+      Map()
+    );
+    this._data = dataKeyedByDateAndCycleTime
+      .valueSeq()
+      .sortBy(datum => datum.date);
   }
 
   get workItems() {
     return this._doneWorkItems;
   }
 
+  get chartData() {
+    return this._data;
+  }
+
   guides(workItems) {
     if (!workItems) workItems = this._doneWorkItems;
-    return [50, 70, 85, 95].map(p => {
-      let pValue = workItems.percentile(p);
+    return List([50, 70, 85, 95]).map(p => {
+      let pValue = WorkItem.percentile(workItems, p);
       return {
         lineColor: "#111111",
         lineAlpha: 1,
@@ -74,10 +84,10 @@ export default class CycleTimeScatterPlotter {
     function onZoom(e) {
       e.chart.valueAxes[0].guides = this.guides(
         this.filterWorkItems({
-          startDate: moment(e.startDate),
-          endDate: moment(e.endDate)
+          startDate: moment(e.chart.lastZoomed.startDate),
+          endDate: moment(e.chart.lastZoomed.endDate)
         })
-      );
+      ).toArray();
       e.chart.validateNow();
     }
 
@@ -93,17 +103,16 @@ export default class CycleTimeScatterPlotter {
       marginRight: 80,
       autoMarginOffset: 20,
       marginTop: 7,
-      dataProvider: this._data,
+      dataProvider: this._data.toArray(),
       valueAxes: [
         {
           axisAlpha: 0.2,
           dashLength: 1,
           position: "left",
-          guides: this.guides(),
+          guides: this.guides().toArray(),
           title: "CycleTime (days)"
         }
       ],
-      mouseWheelZoomEnabled: true,
       graphs: [
         {
           id: "g1",
@@ -122,6 +131,7 @@ export default class CycleTimeScatterPlotter {
       ],
       chartScrollbar: {
         graph: "g1",
+        graphType: "column",
         oppositeAxis: false,
         offset: 30,
         scrollbarHeight: 80,
@@ -144,97 +154,16 @@ export default class CycleTimeScatterPlotter {
         {
           event: "rendered",
           method: function(e) {
-            // set up generic mouse events
             var sb = e.chart.chartScrollbar.set.node;
-            sb.addEventListener("mousedown", function() {
-              e.chart.mouseIsDown = true;
-            });
-            e.chart.chartDiv.addEventListener("mouseup", function() {
-              e.chart.mouseIsDown = false;
-              e.chart.valueAxes[0].guides = chart.plotter.guides(
-                chart.plotter.filterWorkItems({
-                  startDate: moment(e.chart.lastZoomed.startDate),
-                  endDate: moment(e.chart.lastZoomed.endDate)
-                })
-              );
-              e.chart.validateNow();
-              // zoomed finished
-              console.log("zoom finished", e.chart.lastZoomed);
-            });
-          }
+            sb.addEventListener("mouseup", onZoom.bind(this, e));
+          }.bind(this)
         },
         {
           event: "zoomed",
-          method: function(e) {
-            e.chart.lastZoomed = e;
-            console.log("ignoring zoomed");
-          }
+          method: e => (e.chart.lastZoomed = e)
         }
       ]
     });
     chart.plotter = this;
-    /*
-chart.addListener("rendered", zoomChart);
-zoomChart();
-
-// this method is called when chart is first inited as we listen for "rendered" event
-function zoomChart() {
-  // different zoom methods can be used - zoomToIndexes, zoomToDates, zoomToCategoryValues
-  chart.zoomToIndexes(chartData.length - 40, chartData.length - 1);
-}
-
-*/
-    /*    AmCharts.makeChart("cycleTimeScatterPlotContainer", {
-      type: "serial",
-      theme: "light",
-      autoMarginOffset: 20,
-      dataDateFormat: "YYYY-MM-DD",
-      dataProvider: this._data,
-      valueAxes: [
-        {
-          position: "bottom",
-          axisAlpha: 0,
-          dashLength: 1,
-          type: "date",
-          title: "Done Date",
-          listeners: [
-            {
-              event: "axisZoomed",
-              method: _.bind(onZoom, this)
-            }
-          ]
-        },
-        {
-          axisAlpha: 0,
-          dashLength: 1,
-          position: "left",
-          title: "Cycle Time",
-          guides: this.guides()
-        }
-      ],
-      graphs: [
-        {
-          id: "g1",
-          balloonText: "x:[[x]] y:[[y]]",
-          bullet: "circle",
-          lineAlpha: 0,
-          xField: "date",
-          yField: "days",
-          valueField: "size",
-          lineColor: "#FF6600",
-          fillAlphas: 0,
-          bulletSize: 20,
-          labelText: "[[value]]",
-          labelPosition: "middle"
-        }
-      ],
-      chartScrollbar: {
-        enabled: false
-      },
-      marginLeft: 64,
-      marginRight: 84,
-      marginBottom: 60,
-      chartCursor: {}
-    });*/
   }
 }
