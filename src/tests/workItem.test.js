@@ -37,18 +37,78 @@ it("should calculate the cycle time when a work item is done", () => {
   const wi = buildWorkItem({
     statesDates: List([
       moment("2017-01-01", "YYYYMMDD"),
-      moment("2017-01-05", "YYYYMMDD")
-    ])
+      moment("2017-01-05", "YYYYMMDD"),
+      ,
+      moment("2017-02-05", "YYYYMMDD")
+    ]),
+    stateNames: ["ToDo", "Doing", "Testing", "Done"]
   });
-  expect(wi.cycleTime).toBe(4);
-  expect(wi.doneAt.isSame("2017-01-05")).toBeTruthy();
+  expect(wi.cycleTime()).toBe(35);
+  expect(wi.cycleTime(0, 1)).toBe(4);
+  // Given that the Testing state was skipped, the elapsed time on Doing is the difference between Done and Doing.
+  expect(wi.cycleTime(1, 2)).toBeUndefined();
+  expect(wi.cycleTime(1, 3)).toBe(31);
+  expect(wi.doneAt.isSame("2017-02-05")).toBeTruthy();
 });
 
-it("should not calculate the cycle time when a work item is not done", () => {
+it("should not calculate the cycle time when the stated end state did not occur", () => {
+  const wi = buildWorkItem({
+    statesDates: List([
+      moment("2017-01-01", "YYYYMMDD"),
+      moment("2017-01-05", "YYYYMMDD"),
+      ,
+      ,
+    ]),
+    stateNames: ["ToDo", "Doing", "Testing", "Done"]
+  });
+
+  // Given that we don't have the "end" state, the age is calculated up until today's date.
+  expect(wi.cycleTime()).toBeUndefined();
+  expect(wi.cycleTime(1, 3)).toBeUndefined();
+});
+
+it("should calculate the age in days when a work item is done", () => {
+  const wi = buildWorkItem({
+    statesDates: List([
+      moment("2017-01-01", "YYYYMMDD"),
+      moment("2017-01-05", "YYYYMMDD"),
+      ,
+      moment("2017-02-05", "YYYYMMDD")
+    ]),
+    stateNames: ["ToDo", "Doing", "Testing", "Done"]
+  });
+  expect(wi.ageInDays()).toBe(35);
+  expect(wi.ageInDays(0, 1)).toBe(4);
+  // Given that the Testing state was skipped, the elapsed time on Doing is the difference between Done and Doing.
+  expect(wi.ageInDays(1, 2)).toBe(31);
+  expect(wi.ageInDays(1, 3)).toBe(31);
+  expect(wi.doneAt.isSame("2017-02-05")).toBeTruthy();
+});
+
+it("should calculate the age in days when a work item is not done", () => {
+  const wi = buildWorkItem({
+    statesDates: List([
+      moment("2017-01-01", "YYYYMMDD"),
+      moment("2017-01-05", "YYYYMMDD"),
+      ,
+      ,
+    ]),
+    stateNames: ["ToDo", "Doing", "Testing", "Done"]
+  });
+
+  // Given that we don't have the "end" state, the age is calculated up until today's date.
+  expect(wi.ageInDays()).toBe(
+    moment().diff(moment("2017-01-01", "YYYYMMDD"), "days")
+  );
+  expect(wi.ageInDays(1, 3)).toBe(
+    moment().diff(moment("2017-01-05", "YYYYMMDD"), "days")
+  );
+});
+
+it("should not set the done date when a work item is not done", () => {
   const wi = buildWorkItem({
     statesDates: List([moment("2017-01-01", "YYYYMMDD"), undefined])
   });
-  expect(wi.cycleTime).toBeUndefined();
   expect(wi.doneAt).toBeUndefined();
 });
 
@@ -178,4 +238,67 @@ it("should correctly calculate the percentile", () => {
   for (let i = 1; i < workItemsSample.length; i++) {
     expect(WorkItem.percentile(workItemsSample, i)).toBe(i);
   }
+});
+
+it("should filter work items by date", () => {
+  const workItemsSample = [];
+  workItemsSample.push(
+    buildWorkItem({
+      statesDates: List([
+        moment("20170101", "YYYYMMDD"),
+        moment("20170105", "YYYYMMDD")
+      ])
+    })
+  );
+  workItemsSample.push(
+    buildWorkItem({
+      statesDates: List([
+        moment("20170101", "YYYYMMDD"),
+        moment("20170104", "YYYYMMDD")
+      ])
+    })
+  );
+  workItemsSample.push(
+    buildWorkItem({
+      statesDates: List([
+        moment("20170101", "YYYYMMDD"),
+        moment("20170103", "YYYYMMDD")
+      ])
+    })
+  );
+  workItemsSample.push(
+    buildWorkItem({
+      statesDates: List([
+        moment("20170101", "YYYYMMDD"),
+        moment("20170102", "YYYYMMDD")
+      ])
+    })
+  );
+
+  const result = WorkItem.filter(List(workItemsSample), {
+    startDate: moment("20170103", "YYYYMMDD"),
+    endDate: moment("20170104", "YYYYMMDD")
+  });
+
+  expect(result.size).toBe(2);
+  expect(result.get(0).doneAt).toEqual(moment("20170104", "YYYYMMDD"));
+  expect(result.get(1).doneAt).toEqual(moment("20170103", "YYYYMMDD"));
+});
+
+it("should return an empty list when filtering an... empty list.", () => {
+  expect(WorkItem.filter()).toBe(List());
+});
+
+it("should return the an equal list when filtering... without filters.", () => {
+  const workItemsSample = List([
+    buildWorkItem({
+      statesDates: List([
+        moment("20170101", "YYYYMMDD"),
+        moment("20170105", "YYYYMMDD")
+      ])
+    })
+  ]);
+  const result = WorkItem.filter(workItemsSample);
+  expect(result.size).toBe(1);
+  expect(result.get(0).doneAt).toEqual(moment("20170105", "YYYYMMDD"));
 });

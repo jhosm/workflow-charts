@@ -15,6 +15,13 @@ export default class WorkItemsLoader {
     });
   }
 
+  getWorkItemStateNames(rawData) {
+    const fields = List(rawData.meta.fields);
+    return this.getStateFields(fields).map(state =>
+      _.trimStart(state, STATE_PREFIX)
+    );
+  }
+
   buildWorkItems(rawData) {
     const fields = List(rawData.meta.fields);
     const stateFields = this.getStateFields(fields);

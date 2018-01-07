@@ -3,40 +3,41 @@
 import _ from "lodash";
 import { List } from "immutable";
 import moment from "moment";
-import CycleTimeScatterPlotter from "../cycleTimeScatterPlotter";
+import CycleTimeScatterPlotChart from "../cycleTimeScatterPlotChart";
 import WorkItem from "../workItem";
 import {
   buildWorkItem,
   buildWorkItemCollection
 } from "./builders/workItemBuilder";
+import { buildPercentileGuides } from "../scatterChart";
 
 it("should not throw if given an empty workItems list", () => {
   expect(() => {
-    new CycleTimeScatterPlotter([]);
+    new CycleTimeScatterPlotChart([]);
   }).not.toThrow();
 });
 
 it("should build the chart data based on the work items", () => {
   const workItemsSample = buildWorkItemCollection();
 
-  const plotter = new CycleTimeScatterPlotter(workItemsSample);
+  const plotter = new CycleTimeScatterPlotChart(workItemsSample);
 
   const chartData = plotter.chartData;
   expect(chartData.size).toBe(2);
   const firstDataItem = chartData.get(0);
   expect(firstDataItem).toEqual(
     expect.objectContaining({
-      date: new Date(2017, 0, 1),
-      days: 0,
-      size: ""
+      xValue: new Date(2017, 0, 1),
+      yValue: 0,
+      numberOfWorkItems: ""
     })
   );
   expect(firstDataItem.workItems.size).toBe(1);
   expect(chartData.get(1)).toEqual(
     expect.objectContaining({
-      date: new Date(2017, 0, 2),
-      days: 1,
-      size: ""
+      xValue: new Date(2017, 0, 2),
+      yValue: 1,
+      numberOfWorkItems: ""
     })
   );
 });
@@ -46,16 +47,16 @@ it("should build just one data item when two work items completed in the same da
   workItemsSample.push(buildWorkItem()); //two identical work items
   workItemsSample.push(buildWorkItem());
 
-  const plotter = new CycleTimeScatterPlotter(workItemsSample);
+  const plotter = new CycleTimeScatterPlotChart(workItemsSample);
 
   const chartData = plotter.chartData;
   expect(chartData.size).toBe(1);
   const dataItem = chartData.get(0);
   expect(dataItem).toEqual(
     expect.objectContaining({
-      date: new Date(2017, 0, 3),
-      days: 2,
-      size: 2
+      xValue: new Date(2017, 0, 3),
+      yValue: 2,
+      numberOfWorkItems: 2
     })
   );
   expect(dataItem.workItems.size).toBe(2);
@@ -65,48 +66,19 @@ it("should set the number of overlapping (same completion date and cycle time) w
   const workItemsSample = [];
   _.range(10).forEach(i => workItemsSample.push(buildWorkItem()));
 
-  const plotter = new CycleTimeScatterPlotter(workItemsSample);
+  const plotter = new CycleTimeScatterPlotChart(workItemsSample);
 
   const chartData = plotter.chartData;
   expect(chartData.size).toBe(1);
   const dataItem = chartData.get(0);
-  expect(dataItem.size).toBe("+");
-});
-
-it("should filter work items by date", () => {
-  const workItemsSample = [];
-  workItemsSample.push(
-    buildWorkItem({
-      statesDates: List([
-        moment("20170101", "YYYYMMDD"),
-        moment("20170103", "YYYYMMDD")
-      ])
-    })
-  );
-  workItemsSample.push(
-    buildWorkItem({
-      statesDates: List([
-        moment("20170101", "YYYYMMDD"),
-        moment("20170102", "YYYYMMDD")
-      ])
-    })
-  );
-
-  const plotter = new CycleTimeScatterPlotter(workItemsSample);
-
-  const result = plotter.filterWorkItems({
-    startDate: moment("20170103", "YYYYMMDD")
-  });
-
-  expect(result.size).toBe(1);
-  expect(result.get(0).doneAt).toEqual(moment("20170103", "YYYYMMDD"));
+  expect(dataItem.numberOfWorkItems).toBe("+");
 });
 
 it("should calculate the guides (corresponding to the 50, 70, 85 and 95 percentiles)", () => {
-  const workItemsSample = buildWorkItemCollection({ size: 100 });
+  const workItemsSample = buildWorkItemCollection({ numOfWorkItems: 100 });
 
-  const plotter = new CycleTimeScatterPlotter(workItemsSample);
-  const guides = plotter.guides();
+  const plotter = new CycleTimeScatterPlotChart(workItemsSample);
+  const guides = buildPercentileGuides(workItemsSample);
   expect(guides.size).toBe(4);
   expect(guides.get(0)).toEqual(
     expect.objectContaining({

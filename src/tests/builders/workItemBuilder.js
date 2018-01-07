@@ -5,15 +5,18 @@ import { List } from "immutable";
 import moment from "moment";
 import _ from "lodash";
 
-export function buildWorkItemCollection({ size = 2 } = {}) {
+export function buildWorkItemCollection({
+  numOfWorkItems = 2,
+  states = ["ToDo", "Done"]
+} = {}) {
   const baseDate = moment("20170101", "YYYYMMDD");
-  return _.range(size).map(i => {
-    return new WorkItem(
-      i + "",
-      "wi_" + i,
-      List([baseDate, baseDate.clone().add(i, "days")]),
-      ["ToDo", "Done"]
-    );
+  return _.range(numOfWorkItems).map(i => {
+    const stateDates = _.map(states, (state, index) => {
+      const result = baseDate.clone();
+      result.add(i * index, "days");
+      return result;
+    });
+    return new WorkItem(i + "", "wi_" + i, stateDates, states);
   });
 }
 
