@@ -41242,40 +41242,47 @@ class AgingWorkInProgressChart {
           yField: "yValue"
         })
       ],
+      listeners: [
+        {
+          event: "rendered",
+          method: function(e) {
+            const chart = e.chart;
+            const xAxisWith = chart.valueAxes[0].axisWidth;
+            const stateNamesYPosition =
+              chart.valueAxes[0].y + chart.valueAxes[0].height;
+            const numberOfStates = this._stateNames.size;
+            const widthPerState = xAxisWith / numberOfStates;
+
+            this._stateNames.forEach((stateName, stateIndex) => {
+              chart.addLabel(
+                xAxisWith / 2 -
+                  chart.valueAxes[0].getCoordinate(stateIndex + 1) +
+                  widthPerState / 2,
+                stateNamesYPosition + 5,
+                stateName,
+                "center"
+              );
+            });
+
+            const wisPerState = this._workItemsInProgress.groupBy(wi => {
+              return wi.currentStateIndex;
+            });
+
+            wisPerState.forEach((wis, stateIndex) => {
+              chart.addLabel(
+                xAxisWith / 2 -
+                  chart.valueAxes[0].getCoordinate(stateIndex + 1) +
+                  widthPerState / 2,
+                chart.valueAxes[0].y - 20,
+                "WIP:" + wis.size,
+                "center"
+              );
+            });
+          }.bind(this)
+        }
+      ],
       chartScrollbar: { enabled: false },
       chartCursor: { enabled: false }
-    });
-
-    const xAxisWith = chart.valueAxes[0].axisWidth;
-    const stateNamesYPosition =
-      chart.valueAxes[0].y + chart.valueAxes[0].height;
-    const numberOfStates = this._stateNames.size;
-    const widthPerState = xAxisWith / numberOfStates;
-
-    this._stateNames.forEach((stateName, stateIndex) => {
-      chart.addLabel(
-        xAxisWith / 2 -
-          chart.valueAxes[0].getCoordinate(stateIndex + 1) +
-          widthPerState / 2,
-        stateNamesYPosition + 5,
-        stateName,
-        "center"
-      );
-    });
-
-    const wisPerState = this._workItemsInProgress.groupBy(wi => {
-      return wi.currentStateIndex;
-    });
-
-    wisPerState.forEach((wis, stateIndex) => {
-      chart.addLabel(
-        xAxisWith / 2 -
-          chart.valueAxes[0].getCoordinate(stateIndex + 1) +
-          widthPerState / 2,
-        chart.valueAxes[0].y - 20,
-        "WIP:" + wis.size,
-        "center"
-      );
     });
   }
 }

@@ -113,3 +113,5 @@ typings/
 
 # dotenv environment variables file
 .env
+dist/bundle.js
+dist/bundle.js.map
