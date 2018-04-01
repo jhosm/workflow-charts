@@ -86,7 +86,7 @@ export default class AgingWorkInProgressChart {
         {
           event: "rendered",
           method: function(e) {
-            let chart = e.chart;
+            const chart = e.chart;
             const xAxisWith = chart.valueAxes[0].axisWidth;
             const stateNamesYPosition =
               chart.valueAxes[0].y + chart.valueAxes[0].height;
