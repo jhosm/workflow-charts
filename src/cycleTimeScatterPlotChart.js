@@ -1,7 +1,6 @@
 "use strict";
 
 import _ from "lodash";
-import Highcharts from "highcharts";
 import { List, Map } from "immutable";
 import WorkItem from "./workItem";
 import moment from "moment";
