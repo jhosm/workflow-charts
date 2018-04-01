@@ -1,7 +1,6 @@
 "use strict";
 
 import _ from "lodash";
-import Highcharts from "highcharts";
 import { List, Map } from "immutable";
 import WorkItem from "./workItem";
 import moment from "moment";
@@ -82,39 +81,46 @@ export default class AgingWorkInProgressChart {
         })
       ],
       chartScrollbar: { enabled: false },
-      chartCursor: { enabled: false }
-    });
+      chartCursor: { enabled: false },
+      listeners: [
+        {
+          event: "rendered",
+          method: function(e) {
+            let chart = e.chart;
+            const xAxisWith = chart.valueAxes[0].axisWidth;
+            const stateNamesYPosition =
+              chart.valueAxes[0].y + chart.valueAxes[0].height;
+            const numberOfStates = this._stateNames.size;
+            const widthPerState = xAxisWith / numberOfStates;
 
-    const xAxisWith = chart.valueAxes[0].axisWidth;
-    const stateNamesYPosition =
-      chart.valueAxes[0].y + chart.valueAxes[0].height;
-    const numberOfStates = this._stateNames.size;
-    const widthPerState = xAxisWith / numberOfStates;
+            this._stateNames.forEach((stateName, stateIndex) => {
+              chart.addLabel(
+                xAxisWith / 2 -
+                  chart.valueAxes[0].getCoordinate(stateIndex + 1) +
+                  widthPerState / 2,
+                stateNamesYPosition + 5,
+                stateName,
+                "center"
+              );
+            });
 
-    this._stateNames.forEach((stateName, stateIndex) => {
-      chart.addLabel(
-        xAxisWith / 2 -
-          chart.valueAxes[0].getCoordinate(stateIndex + 1) +
-          widthPerState / 2,
-        stateNamesYPosition + 5,
-        stateName,
-        "center"
-      );
-    });
+            const wisPerState = this._workItemsInProgress.groupBy(wi => {
+              return wi.currentStateIndex;
+            });
 
-    const wisPerState = this._workItemsInProgress.groupBy(wi => {
-      return wi.currentStateIndex;
-    });
-
-    wisPerState.forEach((wis, stateIndex) => {
-      chart.addLabel(
-        xAxisWith / 2 -
-          chart.valueAxes[0].getCoordinate(stateIndex + 1) +
-          widthPerState / 2,
-        chart.valueAxes[0].y - 20,
-        "WIP:" + wis.size,
-        "center"
-      );
+            wisPerState.forEach((wis, stateIndex) => {
+              chart.addLabel(
+                xAxisWith / 2 -
+                  chart.valueAxes[0].getCoordinate(stateIndex + 1) +
+                  widthPerState / 2,
+                chart.valueAxes[0].y - 20,
+                "WIP:" + wis.size,
+                "center"
+              );
+            });
+          }.bind(this)
+        }
+      ]
     });
   }
 }
